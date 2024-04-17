@@ -53,7 +53,7 @@
         </div>
         {% for row_index in range(board_state.pieces|length) %}
             <div class="row">
-                <div class="side-label">{{ 8 - row_index }}</div> <!-- Row labels on the left -->
+                <div class="side-label">{{ row_index + 1 }}</div> <!-- Row labels on the left, now from 1 to 8 -->
                 {% for col_index in range(board_state.pieces[row_index]|length) %}
                     {% set piece = board_state.pieces[row_index][col_index] %}
                     {% if (row_index + col_index) % 2 == 0 %}
@@ -62,7 +62,7 @@
                         <div class="square dark">{{ piece }}</div>
                     {% endif %}
                 {% endfor %}
-                <div class="side-label">{{ 8 - row_index }}</div> <!-- Row labels on the right -->
+                <div class="side-label">{{ row_index + 1 }}</div> <!-- Row labels on the right, now from 1 to 8 -->
             </div>
         {% endfor %}
         <div class="footer">

@@ -6,15 +6,15 @@ from enum import Enum
 from typing import List
 
 app = FastAPI()
-templates = Jinja2Templates(directory="templates")  # Ensure this directory is correctly specified
+templates = Jinja2Templates(directory="templates")
 
 class NameMapping(Enum):
-    pawn = 1
-    knight = 2
-    bishop = 3
-    rook = 4
-    queen = 5
-    king = 6
+    PAWN = 'P'
+    KNIGHT = 'N'
+    BISHOP = 'B'
+    ROOK = 'R'
+    QUEEN = 'Q'
+    KING = 'K'
 
 class Move(BaseModel):
     player: str
@@ -24,32 +24,31 @@ class Move(BaseModel):
 class Piece(BaseModel):
     color: str
     position: tuple
+    name: str
 
 class King(Piece):
-    pass
+    name: str = NameMapping.KING.value
 
 class Rook(Piece):
-    pass
+    name: str = NameMapping.ROOK.value
 
 class Knight(Piece):
-    pass
+    name: str = NameMapping.KNIGHT.value
 
 class Bishop(Piece):
-    pass
+    name: str = NameMapping.BISHOP.value
 
 class Queen(Piece):
-    pass
+    name: str = NameMapping.QUEEN.value
 
 class Pawn(Piece):
-    def __init__(self, color: str, position: tuple):
-        super().__init__(color=color, position=position)
+    name: str = NameMapping.PAWN.value
 
 class Board(BaseModel):
     pieces: List[List[str]]
 
 class Game:
     def __init__(self):
-        # Initialize with an empty board to prevent NoneType errors.
         self.board = [[""] * 8 for _ in range(8)]
         self.current_player = "white"
 
@@ -68,10 +67,20 @@ class Game:
     def move(self, move: Move):
         from_row, from_col = self.convert_position(move.position_from)
         to_row, to_col = self.convert_position(move.position_to)
-        piece = self.board[from_row][from_col]
-        self.board[to_row][to_col] = piece
-        self.board[from_row][from_col] = ""
+        if self.valid_move(from_row, from_col, to_row, to_col):
+            piece = self.board[from_row][from_col]
+            self.board[to_row][to_col] = piece
+            self.board[from_row][from_col] = ""
+            self.toggle_player()
+        else:
+            raise HTTPException(status_code=400, detail="Invalid move")
+
+    def toggle_player(self):
         self.current_player = "black" if self.current_player == "white" else "white"
+
+    def valid_move(self, from_row, from_col, to_row, to_col):
+        # Add actual chess move logic here
+        return True
 
     def get_board(self):
         return self.board
@@ -97,7 +106,7 @@ def api_move(move: Move):
 @app.get("/display_board", response_class=HTMLResponse)
 def display_board(request: Request):
     board_state = game.get_board()
-    if board_state is None or not all(board_state):  # Check if board_state is None or contains empty rows
+    if board_state is None or not all(board_state):
         return "No active game or board is uninitialized. Please start a game first."
     return templates.TemplateResponse("board.html", {"request": request, "board_state": {"pieces": board_state}})
 
